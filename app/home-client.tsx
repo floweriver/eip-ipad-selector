@@ -1,4 +1,4 @@
-// v1.1.0 | 2026-07-20 | 前台一頁式互動；產品卡品名自動帶入消費者選擇的型號
+// v1.2.0 | 2026-07-20 | 新增 linkMode：蝦皮版購買按鈕只用蝦皮連結（無連結則照樣顯示但不放按鈕）
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
@@ -26,7 +26,13 @@ export type FrontData = {
 
 const NT = (n: number) => "NT$" + n.toLocaleString("zh-TW");
 
-export default function HomeClient({ data }: { data: FrontData }) {
+export default function HomeClient({
+  data,
+  linkMode = "default",
+}: {
+  data: FrontData;
+  linkMode?: "default" | "shopee";
+}) {
   const [seriesId, setSeriesId] = useState<string | null>(null);
   const [modelId, setModelId] = useState<string | null>(null);
   const [catId, setCatId] = useState<string | null>(null);
@@ -249,7 +255,10 @@ export default function HomeClient({ data }: { data: FrontData }) {
             {compatProducts
               .filter((p) => currentCat && p.category_id === currentCat.id)
               .map((p) => {
-                const buy = p.website_link || p.original_link || p.shopee_link;
+                const buy =
+                  linkMode === "shopee"
+                    ? p.shopee_link
+                    : p.website_link || p.original_link || p.shopee_link;
                 return (
                   <div key={p.id} className="bg-white rounded-2xl shadow-sm overflow-hidden flex flex-col">
                     <div className="relative bg-[#fafafa]">
