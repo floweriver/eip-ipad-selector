@@ -1,6 +1,7 @@
-// v1.0.0 | 2026-07-17 | Apple 品項列表
+// v1.1.0 | 2026-07-20 | Apple 品項列表 + 匯出/匯入 CSV
 import Link from "next/link";
 import { supabaseAdmin } from "@/lib/supabaseAdmin";
+import CsvToolbar from "../io/csv-toolbar";
 
 type Row = {
   id: string;
@@ -30,9 +31,12 @@ export default async function ApplePage({
     <div>
       <div className="flex items-center justify-between mb-4">
         <h1 className="text-2xl font-bold text-gray-900">Apple 品項（{items?.length ?? 0}）</h1>
-        <Link href="/admin/apple/new" className="rounded-lg bg-blue-600 text-white px-4 py-2 text-sm font-medium hover:bg-blue-700">
-          ＋ 新增品項
-        </Link>
+        <div className="flex items-start gap-2">
+          <CsvToolbar table="apple" />
+          <Link href="/admin/apple/new" className="rounded-lg bg-blue-600 text-white px-4 py-2 text-sm font-medium hover:bg-blue-700">
+            ＋ 新增品項
+          </Link>
+        </div>
       </div>
 
       {saved && <p className="mb-4 text-sm text-green-700 bg-green-50 rounded-lg px-3 py-2">已儲存 ✓</p>}

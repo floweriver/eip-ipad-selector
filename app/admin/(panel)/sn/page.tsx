@@ -1,6 +1,7 @@
-// v1.0.0 | 2026-07-17 | A 碼對照管理：搜尋 + 逐列改型號 + 新增/刪除
+// v1.1.0 | 2026-07-20 | A 碼對照管理：搜尋 + 逐列改型號 + 新增/刪除 + 匯出/匯入 CSV
 import { supabaseAdmin } from "@/lib/supabaseAdmin";
 import { addSn, updateSn, deleteSn } from "./actions";
+import CsvToolbar from "../io/csv-toolbar";
 
 export default async function SnPage({
   searchParams,
@@ -23,7 +24,10 @@ export default async function SnPage({
 
   return (
     <div>
-      <h1 className="text-2xl font-bold text-gray-900 mb-4">A 碼對照（{sns?.length ?? 0}）</h1>
+      <div className="flex items-center justify-between mb-4">
+        <h1 className="text-2xl font-bold text-gray-900">A 碼對照（{sns?.length ?? 0}）</h1>
+        <CsvToolbar table="sn" />
+      </div>
 
       {saved && <p className="mb-4 text-sm text-green-700 bg-green-50 rounded-lg px-3 py-2">已儲存 ✓</p>}
       {err && <p className="mb-4 text-sm text-red-600 bg-red-50 rounded-lg px-3 py-2">{err}</p>}

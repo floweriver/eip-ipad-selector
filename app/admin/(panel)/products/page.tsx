@@ -1,6 +1,7 @@
-// v1.0.0 | 2026-07-17 | 產品列表：分類篩選 + 搜尋 + 相容台數
+// v1.1.0 | 2026-07-20 | 產品列表：分類篩選 + 搜尋 + 相容台數 + 匯出/匯入 CSV
 import Link from "next/link";
 import { supabaseAdmin } from "@/lib/supabaseAdmin";
+import CsvToolbar from "../io/csv-toolbar";
 
 type Row = {
   id: string;
@@ -37,12 +38,15 @@ export default async function ProductsPage({
     <div>
       <div className="flex items-center justify-between mb-4">
         <h1 className="text-2xl font-bold text-gray-900">eiP 產品（{products?.length ?? 0}）</h1>
-        <Link
-          href="/admin/products/new"
-          className="rounded-lg bg-blue-600 text-white px-4 py-2 text-sm font-medium hover:bg-blue-700"
-        >
-          ＋ 新增產品
-        </Link>
+        <div className="flex items-start gap-2">
+          <CsvToolbar table="products" />
+          <Link
+            href="/admin/products/new"
+            className="rounded-lg bg-blue-600 text-white px-4 py-2 text-sm font-medium hover:bg-blue-700"
+          >
+            ＋ 新增產品
+          </Link>
+        </div>
       </div>
 
       {saved && (

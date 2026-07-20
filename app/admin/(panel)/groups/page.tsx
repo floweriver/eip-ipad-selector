@@ -1,6 +1,7 @@
-// v1.0.0 | 2026-07-17 | 相容群組管理：改名/排序 + 新增/刪除 + 成員一覽
+// v1.1.0 | 2026-07-20 | 相容群組管理：改名/排序 + 新增/刪除 + 成員一覽 + 匯出/匯入 CSV
 import { supabaseAdmin } from "@/lib/supabaseAdmin";
 import { updateGroup, addGroup, deleteGroup } from "./actions";
+import CsvToolbar from "../io/csv-toolbar";
 
 export default async function GroupsPage({
   searchParams,
@@ -19,7 +20,10 @@ export default async function GroupsPage({
 
   return (
     <div>
-      <h1 className="text-2xl font-bold text-gray-900 mb-4">相容群組（{groups?.length ?? 0}）</h1>
+      <div className="flex items-center justify-between mb-4">
+        <h1 className="text-2xl font-bold text-gray-900">相容群組（{groups?.length ?? 0}）</h1>
+        <CsvToolbar table="groups" />
+      </div>
 
       {saved && <p className="mb-4 text-sm text-green-700 bg-green-50 rounded-lg px-3 py-2">已儲存 ✓</p>}
       {err && <p className="mb-4 text-sm text-red-600 bg-red-50 rounded-lg px-3 py-2">{err}</p>}
