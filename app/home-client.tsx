@@ -1,4 +1,4 @@
-// v1.0.0 | 2026-07-20 | 前台一頁式互動：選系列 → 選型號（或 A 碼）→ 比價 + 配件推薦（Apple 官網風格）
+// v1.1.0 | 2026-07-20 | 前台一頁式互動；產品卡品名自動帶入消費者選擇的型號
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
@@ -264,7 +264,10 @@ export default function HomeClient({ data }: { data: FrontData }) {
                       )}
                     </div>
                     <div className="p-4 flex flex-col flex-1">
-                      <div className="font-medium leading-snug flex-1">{p.name}</div>
+                      <div className="flex-1">
+                        <div className="font-medium leading-snug">{p.name}</div>
+                        <div className="text-xs text-[#0071e3] mt-1">適用 {model.model_name}</div>
+                      </div>
                       <div className="mt-2 text-lg font-semibold">{NT(p.price)}</div>
                       {buy && (
                         <a

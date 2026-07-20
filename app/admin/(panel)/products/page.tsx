@@ -1,7 +1,8 @@
-// v1.1.0 | 2026-07-20 | 產品列表：分類篩選 + 搜尋 + 相容台數 + 匯出/匯入 CSV
+// v1.2.0 | 2026-07-20 | 產品列表：分類篩選 + 搜尋 + 相容台數 + 匯出/匯入 CSV + 規格標籤
 import Link from "next/link";
 import { supabaseAdmin } from "@/lib/supabaseAdmin";
 import CsvToolbar from "../io/csv-toolbar";
+import { specLabel } from "@/lib/specLabel";
 
 type Row = {
   id: string;
@@ -9,7 +10,7 @@ type Row = {
   price: number;
   ranking: number | null;
   categories: { name: string } | null;
-  product_compatibility: { count: number }[];
+  product_compatibility: { model_id: string }[];
 };
 
 export default async function ProductsPage({
@@ -20,11 +21,23 @@ export default async function ProductsPage({
   const { cat, q, saved } = await searchParams;
   const db = supabaseAdmin();
 
-  const { data: categories } = await db.from("categories").select("id, name").order("sort_order");
+  const [{ data: categories }, { data: allModels }, { data: allGroups }] = await Promise.all([
+    db.from("categories").select("id, name").order("sort_order"),
+    db.from("ipad_models").select("id, model_name, group_id").order("sort_order"),
+    db.from("compat_groups").select("id, name").order("sort_order"),
+  ]);
+
+  const modelNameById = new Map((allModels ?? []).map((m) => [m.id, m.model_name]));
+  const labelGroups = (allGroups ?? []).map((g) => ({
+    id: g.id,
+    name: g.name,
+    memberIds: (allModels ?? []).filter((m) => m.group_id === g.id).map((m) => m.id),
+  }));
+  const totalModels = allModels?.length ?? 0;
 
   let query = db
     .from("products")
-    .select("id, name, price, ranking, categories(name), product_compatibility(count)")
+    .select("id, name, price, ranking, categories(name), product_compatibility(model_id)")
     .order("name");
   if (cat) query = query.eq("category_id", cat);
   if (q) query = query.ilike("name", `%${q}%`);
@@ -87,13 +100,23 @@ export default async function ProductsPage({
           <tbody className="divide-y divide-gray-100">
             {products?.map((p) => (
               <tr key={p.id} className="hover:bg-gray-50">
-                <td className="px-4 py-3 text-gray-900">{p.name}</td>
+                <td className="px-4 py-3 text-gray-900">
+                  {p.name}
+                  <span className="ml-2 text-xs text-blue-700 bg-blue-50 rounded-full px-2 py-0.5 whitespace-nowrap">
+                    {specLabel(
+                      (p.product_compatibility ?? []).map((c) => c.model_id),
+                      labelGroups,
+                      modelNameById,
+                      totalModels
+                    )}
+                  </span>
+                </td>
                 <td className="px-4 py-3 text-gray-500">{p.categories?.name}</td>
                 <td className="px-4 py-3 text-right">{p.price.toLocaleString()}</td>
                 <td className="px-4 py-3 text-center">
                   {p.ranking != null ? <span className="text-amber-500">★</span> : <span className="text-gray-300">—</span>}
                 </td>
-                <td className="px-4 py-3 text-center">{p.product_compatibility?.[0]?.count ?? 0}</td>
+                <td className="px-4 py-3 text-center">{p.product_compatibility?.length ?? 0}</td>
                 <td className="px-4 py-3 text-right">
                   <Link href={`/admin/products/${p.id}`} className="text-blue-600 hover:underline">編輯</Link>
                 </td>
