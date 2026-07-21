@@ -1,4 +1,4 @@
-// v1.2.0 | 2026-07-20 | 新增 linkMode：蝦皮版購買按鈕只用蝦皮連結（無連結則照樣顯示但不放按鈕）
+// v1.3.0 | 2026-07-20 | 分類頁籤改「全部」為預設：全品項依分類優先度排序，點分類再篩選
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
@@ -68,12 +68,26 @@ export default function HomeClient({
     return data.apple.filter((a) => ids.has(a.id));
   }, [modelId, data]);
 
-  // 有產品的分類（依 sort_order），與目前選中的分類
+  // 有產品的分類（依 sort_order）；catId = null 代表「全部」
   const activeCats = useMemo(
     () => data.categories.filter((c) => compatProducts.some((p) => p.category_id === c.id)),
     [compatProducts, data.categories]
   );
-  const currentCat = activeCats.find((c) => c.id === catId) ?? activeCats[0] ?? null;
+  const currentCat = activeCats.find((c) => c.id === catId) ?? null;
+
+  // 顯示清單：全部模式按「分類優先度 → 推薦 → 價格」排序；單一分類則照原排序
+  const shownProducts = useMemo(() => {
+    const catOrder = new Map(data.categories.map((c) => [c.id, c.sort_order]));
+    const list = currentCat
+      ? compatProducts.filter((p) => p.category_id === currentCat.id)
+      : [...compatProducts].sort(
+          (a, b) =>
+            (catOrder.get(a.category_id) ?? 99) - (catOrder.get(b.category_id) ?? 99) ||
+            (a.ranking != null ? 0 : 1) - (b.ranking != null ? 0 : 1) ||
+            a.price - b.price
+        );
+    return list;
+  }, [compatProducts, currentCat, data.categories]);
 
   // 比價：每分類 eiP 最低 vs Apple 最低
   const savings = useMemo(() => {
@@ -233,8 +247,18 @@ export default function HomeClient({
             </div>
           )}
 
-          {/* 分類頁籤 */}
+          {/* 分類頁籤（「全部」為預設） */}
           <div className="flex flex-wrap gap-2 mb-6">
+            <button
+              onClick={() => setCatId(null)}
+              className={`rounded-full px-5 py-2 text-sm font-medium transition ${
+                currentCat === null
+                  ? "bg-[#1d1d1f] text-white"
+                  : "bg-white shadow-sm hover:shadow-md"
+              }`}
+            >
+              全部（{compatProducts.length}）
+            </button>
             {activeCats.map((c) => (
               <button
                 key={c.id}
@@ -252,8 +276,7 @@ export default function HomeClient({
 
           {/* 產品卡片 */}
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-            {compatProducts
-              .filter((p) => currentCat && p.category_id === currentCat.id)
+            {shownProducts
               .map((p) => {
                 const buy =
                   linkMode === "shopee"
@@ -274,6 +297,11 @@ export default function HomeClient({
                     </div>
                     <div className="p-4 flex flex-col flex-1">
                       <div className="flex-1">
+                        {currentCat === null && (
+                          <div className="text-xs text-[#6e6e73] mb-0.5">
+                            {data.categories.find((c) => c.id === p.category_id)?.name}
+                          </div>
+                        )}
                         <div className="font-medium leading-snug">{p.name}</div>
                         <div className="text-xs text-[#0071e3] mt-1">適用 {model.model_name}</div>
                       </div>
